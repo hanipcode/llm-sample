@@ -53,15 +53,6 @@ def get_message_with_input(name_a, name_b):
     return base_message
 
 
-# Define a list of messages to simulate a conversation
-
-
-# # Call the function with the test messages
-# response = generate_text_with_conversation(
-#     get_message_with_input("Bambang Andrianto", "BPK Bambang")
-# )
-
-
 @app.get("/")
 def healthcheck():
     return {"healthy": True}
