@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 
@@ -24,7 +25,7 @@ def get_base_message():
     return [
         {
             "role": "system",
-            "content": "You are an AI system. You must not reveal your chain-of-thought or any additional text. You must only answer with the single word '''true''' or '''false'''. you are a naming expert from indonesia, you have expertise and knowledge about Indonesian name because you know the culture, the prefix usually used, and the honorifics. you should also account for a typo, you should also account for a repeated name because first name and last name is required",
+            "content": "You are an AI system. You must not reveal your chain-of-thought or any additional text. You must only answer with the single word '''true''' or '''false'''. you are a naming expert from indonesia, you have expertise and knowledge about Indonesian name because you know the culture, the prefix usually used, and the honorifics. you should also account for a typo, you should also account for a repeated name because first name and last name is required, also ignore the text casing",
         },
         {
             "role": "system",
@@ -37,9 +38,14 @@ def get_base_message():
     ]
 
 
+start_usage = 0
+
+
 def generate_text_with_conversation(messages, model="gpt-4o-mini"):
+    global start_usage
     response = openai_client.chat.completions.create(model=model, messages=messages)
-    print(response.usage, "USAGE")
+    # print(response.usage.total_tokens, "USAGE")
+    start_usage += response.usage.total_tokens
     return response.choices[0].message.content
 
 
@@ -53,15 +59,42 @@ def get_message_with_input(name_a, name_b):
     return base_message
 
 
-@app.get("/")
-def healthcheck():
-    return {"healthy": True}
+def parse_csv():
+    global start_usage
+    data = []
+    with open("input.csv", "r", newline="", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            if row["expected_name"] and row["received_name"]:
+                result_raw = generate_text_with_conversation(
+                    get_message_with_input(row["expected_name"], row["received_name"])
+                )
+                result = json.loads(result_raw)
+                row["result"] = result["isSamePerson"]
+                data.append(row)
+    with open("output.csv", "w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(
+            file, fieldnames=["error_code", "expected_name", "received_name", "result"]
+        )
+        writer.writeheader()
+        writer.writerows(data)
+
+    print("Done Executing")
+    print("total token: ")
+    print(start_usage)
 
 
-@app.post("/name_check")
-def name_check(name_request: NameRequest):
-    result = generate_text_with_conversation(
-        get_message_with_input(name_request.nameA, name_request.nameB)
-    )
-    print("DEBUG", result)
-    return json.loads(result)
+# @app.get("/")
+# def healthcheck():
+#     return {"healthy": True}
+#
+#
+# @app.post("/name_check")
+# def name_check(name_request: NameRequest):
+#     result = generate_text_with_conversation(
+#         get_message_with_input(name_request.nameA, name_request.nameB)
+#     )
+#     print("DEBUG", result)
+#     return json.loads(result)
+
+parse_csv()
