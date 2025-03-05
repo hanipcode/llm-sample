@@ -25,7 +25,7 @@ def get_base_message():
     return [
         {
             "role": "system",
-            "content": "You are an AI system. You must not reveal your chain-of-thought or any additional text. You must only answer with the single word '''true''' or '''false'''. you are a naming expert from indonesia, you have expertise and knowledge about Indonesian name because you know the culture, the prefix usually used, and the honorifics. you should also account for a typo, you should also account for a repeated name because first name and last name is required, also ignore the text casing",
+            "content": "You are an AI system.  you are a naming expert that have knowledge of naming pattern around the world, you have expertise and knowledge about  name because you know the culture of different countries, the prefix usually used, and the honorifics. you should also account for a typo, you should also account for a repeated name because first name and last name is required, also ignore the text casing. also you should remember about abbreviation both in name and honorifics, for example SAUDARA / SODARA can be SDR and Caesar can be C.",
         },
         {
             "role": "system",
